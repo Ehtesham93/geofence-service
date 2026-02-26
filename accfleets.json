@@ -1,0 +1,34 @@
+[
+    {
+        "fleetname": "fleet-11000",
+        "numvins": 1000,
+        "children": [
+            {
+                "fleetname": "fleet-6000",
+                "numvins": 1000,
+                "children": [
+                    {
+                        "fleetname": "fleet-3000",
+                        "numvins": 3000,
+                        "children": []
+                    },
+                    {
+                        "fleetname": "fleet-2000",
+                        "numvins": 2000,
+                        "children": []
+                    }
+                ]
+            },
+            {
+                "fleetname": "fleet-4000",
+                "numvins": 4000,
+                "children": []
+            }
+        ]
+    },
+    {
+        "fleetname": "fleet-200",
+        "numvins": 600,
+        "children": []
+    }
+]

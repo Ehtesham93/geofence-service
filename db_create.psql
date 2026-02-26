@@ -1,0 +1,203 @@
+SELECT
+    NOW();
+
+SHOW search_path;
+
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+CREATE SCHEMA IF NOT EXISTS geofencesch;
+
+-- Table to define the types of geofence rules (e.g., Entry/Exit, Route)
+CREATE TABLE IF NOT EXISTS geofenceruletype (
+    ruletypeid text NOT NULL,
+    ruletype text NOT NULL,
+    PRIMARY KEY (ruletypeid)
+);
+INSERT INTO geofencesch.geofenceruletype(ruletypeid, ruletype) values ('TRIP', 'Trip'), ('ENTRY_EXIT','Entry/Exit');
+
+
+-- Table to define the types of actions within a geofence rule (e.g., Entry, Exit)
+CREATE TABLE IF NOT EXISTS rulegeofenceaction (
+    actiontypeid text NOT NULL,
+    actiontype text NOT NULL,
+    PRIMARY KEY (actiontypeid)
+);
+INSERT INTO geofencesch.rulegeofenceaction(actiontypeid, actiontype) values ('ENTRY', 'Entry'), ('EXIT','Exit'),('ENTRY_EXIT', 'Entry/Exit');
+
+
+
+-- Stores geofence definitions
+CREATE TABLE IF NOT EXISTS geofence (
+    accountid uuid NOT NULL,
+    fleetid uuid NOT NULL,
+    geofenceid uuid NOT NULL,
+    geofencename text NOT NULL,
+    isactive boolean NOT NULL,
+    geofenceinfo jsonb NOT NULL, -- Contains geometry data like type, latlngs, radius
+    meta jsonb NOT NULL,         -- Contains metadata like address, tags, colour
+    createdat timestamptz NOT NULL,
+    createdby uuid NOT NULL,
+    updatedat timestamptz NOT NULL,
+    updatedby uuid NOT NULL,
+    isdeleted boolean NOT NULL DEFAULT false,
+    PRIMARY KEY (accountid, fleetid, geofenceid),
+    UNIQUE (geofenceid),
+    UNIQUE (accountid, fleetid, geofencename),
+    FOREIGN KEY (accountid, fleetid) REFERENCES devfmscoresch.account_fleet(accountid, fleetid),
+    FOREIGN KEY (createdby) REFERENCES devfmscoresch.users(userid),
+    FOREIGN KEY (updatedby) REFERENCES devfmscoresch.users(userid)
+);
+
+
+-- Stores the main geofence rule configurations
+CREATE TABLE IF NOT EXISTS geofencerule (
+    accountid uuid NOT NULL,
+    fleetid uuid NOT NULL,
+    ruleid uuid NOT NULL,
+    rulename text NOT NULL,
+    ruletypeid text NOT NULL,
+    isactive boolean NOT NULL,
+    rulemeta jsonb NOT NULL, -- Contains rule metadata like start and end times
+    createdat timestamptz NOT NULL,
+    createdby uuid NOT NULL,
+    updatedat timestamptz NOT NULL,
+    updatedby uuid NOT NULL,
+    isdeleted boolean NOT NULL DEFAULT false,
+    PRIMARY KEY (accountid, fleetid, ruleid),
+    UNIQUE (ruleid),
+    UNIQUE (accountid, fleetid, rulename),
+    FOREIGN KEY (accountid, fleetid) REFERENCES devfmscoresch.account_fleet(accountid, fleetid),
+    FOREIGN KEY (ruletypeid) REFERENCES geofenceruletype(ruletypeid),
+    FOREIGN KEY (createdby) REFERENCES devfmscoresch.users(userid),
+    FOREIGN KEY (updatedby) REFERENCES devfmscoresch.users(userid)
+);
+
+
+-- Defines the sequence and actions for geofences within a rule
+CREATE TABLE IF NOT EXISTS geofenceruleinfo (
+    accountid uuid NOT NULL,
+    fleetid uuid NOT NULL,
+    ruleid uuid NOT NULL,
+    geofenceid uuid NOT NULL,
+    seqno int NOT NULL, -- Sequence number; 0 for start, -1 for end
+    actiontypeid text NOT NULL,
+    geofencerulemeta jsonb NOT NULL, -- Contains metadata like duration, time, repeats
+    updatedat timestamptz NOT NULL,
+    updatedby uuid NOT NULL,
+    PRIMARY KEY (accountid, fleetid, ruleid, geofenceid, seqno),
+    FOREIGN KEY (accountid, fleetid, ruleid) REFERENCES geofencerule(accountid, fleetid, ruleid),
+    FOREIGN KEY (accountid, fleetid, geofenceid) REFERENCES geofence(accountid, fleetid, geofenceid),
+    FOREIGN KEY (accountid, fleetid) REFERENCES devfmscoresch.account_fleet(accountid, fleetid),
+    FOREIGN KEY (actiontypeid) REFERENCES rulegeofenceaction(actiontypeid),
+    FOREIGN KEY (updatedby) REFERENCES devfmscoresch.users(userid)
+);
+
+
+-- Associates geofence rules with specific vehicles
+CREATE TABLE IF NOT EXISTS geofencerulevehicle (
+    accountid uuid NOT NULL,
+    fleetid uuid NOT NULL,
+    ruleid uuid NOT NULL,
+    vinno text NOT NULL,
+    createdat timestamptz NOT NULL,
+    createdby uuid NOT NULL,
+    PRIMARY KEY (accountid, fleetid, ruleid, vinno),
+    FOREIGN KEY (accountid, fleetid, ruleid) REFERENCES geofencerule(accountid, fleetid, ruleid),
+    FOREIGN KEY (accountid, fleetid) REFERENCES devfmscoresch.account_fleet(accountid, fleetid),
+    FOREIGN KEY (vinno) REFERENCES devfmscoresch.vehicle(vinno),
+    FOREIGN KEY (createdby) REFERENCES devfmscoresch.users(userid)
+);
+
+
+-- Associates geofence rules with specific sub-fleets
+CREATE TABLE IF NOT EXISTS geofencerulefleet (
+    accountid uuid NOT NULL,
+    fleetid uuid NOT NULL,
+    ruleid uuid NOT NULL,
+    subfleetid uuid NOT NULL,
+    createdat timestamptz NOT NULL,
+    createdby uuid NOT NULL,
+    updatedat timestamptz NOT NULL,
+    updatedby uuid NOT NULL,
+    PRIMARY KEY (accountid, fleetid, ruleid, subfleetid),
+    FOREIGN KEY (accountid, fleetid, ruleid) REFERENCES geofencerule(accountid, fleetid, ruleid),
+    FOREIGN KEY (accountid, fleetid) REFERENCES devfmscoresch.account_fleet(accountid, fleetid),
+    FOREIGN KEY (accountid, subfleetid) REFERENCES devfmscoresch.account_fleet(accountid, fleetid),
+    FOREIGN KEY (createdby) REFERENCES devfmscoresch.users(userid),
+    FOREIGN KEY (updatedby) REFERENCES devfmscoresch.users(userid)
+);
+
+
+-- Associates users with geofence rules for notifications
+CREATE TABLE IF NOT EXISTS geofenceruleuser (
+    accountid uuid NOT NULL,
+    fleetid uuid NOT NULL,
+    ruleid uuid NOT NULL,
+    userid uuid NOT NULL,
+    alertmeta jsonb NOT NULL, -- Notification preferences (e.g., email, push)
+    createdat timestamptz NOT NULL,
+    createdby uuid NOT NULL,
+    updatedat timestamptz NOT NULL,
+    updatedby uuid NOT NULL,
+    PRIMARY KEY (accountid, fleetid, ruleid, userid),
+    FOREIGN KEY (accountid, fleetid, ruleid) REFERENCES geofencerule(accountid, fleetid, ruleid),
+    FOREIGN KEY (accountid, fleetid) REFERENCES devfmscoresch.account_fleet(accountid, fleetid),
+    FOREIGN KEY (userid) REFERENCES devfmscoresch.users(userid),
+    FOREIGN KEY (createdby) REFERENCES devfmscoresch.users(userid),
+    FOREIGN KEY (updatedby) REFERENCES devfmscoresch.users(userid)
+);
+
+
+-- Logs trips related to geofence rules
+CREATE TABLE IF NOT EXISTS geofencevehruletrip (
+    accountid uuid NOT NULL,
+    fleetid uuid NOT NULL,
+    vinno text NOT NULL,
+    ruleid uuid NOT NULL,
+    tripstarttime timestamptz NOT NULL,
+    tripendtime timestamptz NOT NULL,
+    tripid uuid NOT NULL,
+    startlat double precision NOT NULL,
+    startlng double precision NOT NULL,
+    endlat double precision NOT NULL,
+    endlng double precision NOT NULL,
+    startodo int NOT NULL,
+    endodo int NOT NULL,
+    startsoc smallint NOT NULL,
+    endsoc smallint NOT NULL,
+    meta jsonb NOT NULL,
+    proctime timestamptz NOT NULL,
+    PRIMARY KEY (accountid, fleetid, vinno, tripstarttime),
+    UNIQUE (tripid),
+    FOREIGN KEY (accountid, fleetid, ruleid) REFERENCES geofencerule(accountid, fleetid, ruleid),
+    FOREIGN KEY (accountid, fleetid) REFERENCES devfmscoresch.account_fleet(accountid, fleetid),
+    FOREIGN KEY (vinno) REFERENCES devfmscoresch.vehicle(vinno)
+);
+
+CREATE INDEX IF NOT EXISTS geofencevehruletrip_idx ON geofencevehruletrip (accountid, fleetid, ruleid, vinno, tripstarttime);
+CREATE INDEX IF NOT EXISTS geofencevehrulevintrip_idx ON geofencevehruletrip (accountid, fleetid, vinno, ruleid, tripstarttime);
+
+-- Logs alerts generated from geofence rule violations
+CREATE TABLE IF NOT EXISTS geofencevehrulealert (
+    accountid uuid NOT NULL,
+    fleetid uuid NOT NULL,
+    vinno text NOT NULL,
+    ruleid uuid NOT NULL,
+    alerttime timestamptz NOT NULL,
+    alerttype text NOT NULL,
+    alertid uuid NOT NULL,
+    odo int NOT NULL,
+    speed smallint NOT NULL,
+    soc smallint NOT NULL,
+    lat double precision NOT NULL,
+    lng double precision NOT NULL,
+    meta jsonb NOT NULL,
+    proctime timestamptz NOT NULL,
+    PRIMARY KEY (accountid, fleetid, vinno, alerttime),
+    FOREIGN KEY (accountid, fleetid, ruleid) REFERENCES geofencerule(accountid, fleetid, ruleid),
+    FOREIGN KEY (accountid, fleetid) REFERENCES devfmscoresch.account_fleet(accountid, fleetid),
+    FOREIGN KEY (vinno) REFERENCES devfmscoresch.vehicle(vinno)
+);
+
+CREATE INDEX IF NOT EXISTS geofencevehrulealert_idx ON geofencevehrulealert (accountid, fleetid, ruleid, vinno, alerttime);
+CREATE INDEX IF NOT EXISTS geofencevehrulevinalert_idx ON geofencevehrulealert (accountid, fleetid, vinno, ruleid, alerttime);

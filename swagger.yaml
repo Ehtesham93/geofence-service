@@ -1,0 +1,868 @@
+openapi: 3.0.0
+info:
+  title: Geofence API
+  version: 1.0.0
+
+servers:
+  - url: https://stg-nemo.mahindralastmilemobility.com:2083/api/v1/fms
+  - url: https://stg-nemo.mahindralastmilemobility.com:2053/api/v1/fms
+  - url: http://localhost:10004/api/v1/fms
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: token
+
+paths:
+  /geofence/settoken:
+    post:
+      tags:
+        - FMS > Geofence
+      summary: Set Authentication Token
+      description: Set authentication token in cookie for testing purposes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                token: "your-authentication-token-here"
+      responses:
+        "200":
+          description: Token set successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: "Token set successfully in cookie"
+                  cookieSet: true
+                  swaggerReady: true
+
+  /geofence/health/check:
+    get:
+      tags:
+        - FMS > Geofence
+      summary: Health Check
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json: {}
+
+  /geofence/create:
+    post:
+      tags:
+        - FMS > Geofence
+      summary: Create Geofence
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                fleetid: "2c360155-e1cb-40cb-80f3-f222eaffedb6"
+                geofencename: "First Geofence"
+                geofenceinfo:
+                  type: "circle"
+                  latlngs:
+                    - lat: 28.60072
+                      lng: 77.3405
+                  radius: 600
+                meta:
+                  address: "Begaluru"
+                  tag: ["test"]
+                  center:
+                    lat: 28.60072
+                    lng: 77.3405
+                  colour: "0xff0000"
+                  area: "11.304 sq km"
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Geofence created
+          content:
+            application/json: {}
+
+  /geofence/create/withrule:
+    post:
+      tags:
+        - FMS > Geofence
+      summary: Create Geofence with Rule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                fleetid: "2c360155-e1cb-40cb-80f3-f222eaffedb6"
+                geofencename: "First Geofence"
+                geofenceinfo:
+                  latlngs:
+                    - lat: 28.60072
+                      lng: 77.3405
+                  radius: 600
+                meta:
+                  address: "Begaluru"
+                  tag: ["test"]
+                  colour: "0xff0000"
+                  area: "11.304 sq km"
+                rule:
+                  meta:
+                    reason: "test"
+                  actiontypeid: "ENTRY"
+                vehicles: ["VIN123456789"]
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Geofence with rule created
+          content:
+            application/json: {}
+
+  /geofence/list:
+    get:
+      tags:
+        - FMS > Geofence
+      summary: Get Geofences
+      parameters:
+        - in: query
+          name: fleetid
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: recursive
+          required: false
+          schema:
+            type: string
+          example: "true"
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: List of geofences
+          content:
+            application/json: {}
+
+  /geofence/list/withrule:
+    get:
+      tags:
+        - FMS > Geofence
+      summary: Get Geofences with Action Info (Mobile UI)
+      parameters:
+        - in: query
+          name: fleetid
+          required: true
+          schema:
+            type: string
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: List of geofences with action info
+          content:
+            application/json: {}
+
+  /geofence/list/{geofenceid}:
+    get:
+      tags:
+        - FMS > Geofence
+      summary: Get Geofence by ID
+      parameters:
+        - in: query
+          name: fleetid
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: geofenceid
+          required: true
+          schema:
+            type: string
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Geofence details
+          content:
+            application/json: {}
+
+  /geofence/update:
+    put:
+      tags:
+        - FMS > Geofence
+      summary: Update Geofence
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                fleetid: "2c360155-e1cb-40cb-80f3-f222eaffedb6"
+                geofenceid: "be637954-e94e-4996-90ae-0a7e4e189e3c"
+                geofencename: "First Geofence Rename"
+                geofenceinfo:
+                  type: "circle"
+                  latlngs:
+                    - lat: 28.60072
+                      lng: 77.3405
+                  radius: 600
+                meta:
+                  address: "Begaluru"
+                  tag: ["test"]
+                  center:
+                    lat: 28.60072
+                    lng: 77.3405
+                  colour: "0xff0000"
+                  area: "11.304 sq km"
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Geofence updated
+          content:
+            application/json: {}
+
+  /geofence/updateactive:
+    put:
+      tags:
+        - FMS > Geofence
+      summary: Update Geofence Status
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                fleetid: "2c360155-e1cb-40cb-80f3-f222eaffedb6"
+                geofenceid: "be637954-e94e-4996-90ae-0a7e4e189e3c"
+                isactive: false
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Geofence status updated
+          content:
+            application/json: {}
+
+  /geofence/updateactive/withrule:
+    put:
+      tags:
+        - FMS > Geofence
+      summary: Update Geofence Status with Rule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                fleetid: "2c360155-e1cb-40cb-80f3-f222eaffedb6"
+                geofenceid: "be637954-e94e-4996-90ae-0a7e4e189e3c"
+                ruleid: "11532bc8-9668-448e-89a6-5734b9721b08"
+                isactive: false
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Geofence and rule status updated
+          content:
+            application/json: {}
+
+  /geofence/delete:
+    delete:
+      tags:
+        - FMS > Geofence
+      summary: Delete Geofence
+      parameters:
+        - in: query
+          name: fleetid
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: geofenceid
+          required: true
+          schema:
+            type: string
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Geofence deleted
+          content:
+            application/json: {}
+
+  /geofence/delete/withrule:
+    delete:
+      tags:
+        - FMS > Geofence
+      summary: Delete Geofence with Rule
+      parameters:
+        - in: query
+          name: fleetid
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: geofenceid
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: ruleid
+          required: true
+          schema:
+            type: string
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Geofence and rule deleted
+          content:
+            application/json: {}
+
+  /geofence/listgeorules:
+    get:
+      tags:
+        - FMS > Geofence
+      summary: Get Geofence Rules
+      parameters:
+        - in: query
+          name: fleetid
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: geofenceid
+          required: true
+          schema:
+            type: string
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: List of geofence rules
+          content:
+            application/json: {}
+
+  /geofence/listruletypes:
+    get:
+      tags:
+        - FMS > Geofence
+      summary: Get Rule Types
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: List of rule types
+          content:
+            application/json: {}
+
+  /geofence/listactiontypes:
+    get:
+      tags:
+        - FMS > Geofence
+      summary: Get Action Types
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: List of action types
+          content:
+            application/json: {}
+
+  /geofence/createrule:
+    post:
+      tags:
+        - FMS > Geofence
+      summary: Create Rule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                fleetid: "2c360155-e1cb-40cb-80f3-f222eaffedb6"
+                rule:
+                  rulename: "first rule"
+                  ruletypeid: "ENTRY_EXIT"
+                  meta:
+                    reason: "test"
+                  rulegeoinfo:
+                    - geofenceid: "f38fd808-568c-4f5f-af48-a42c7ccbd294"
+                      seqno: "0"
+                      actiontypeid: "ENTRY"
+                      meta:
+                        duration: 20000
+                        time: 1752670110
+                        repeats: 1
+                    - geofenceid: "0f6c7900-f798-4e79-9352-c3488124a285"
+                      seqno: "1"
+                      actiontypeid: "EXIT"
+                      meta:
+                        duration: 20000
+                        time: 1752670110
+                        repeats: 1
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Rule created
+          content:
+            application/json: {}
+
+  /geofence/listrules:
+    get:
+      tags:
+        - FMS > Geofence
+      summary: Get Rules
+      parameters:
+        - in: query
+          name: fleetid
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: recursive
+          required: false
+          schema:
+            type: string
+          example: "true"
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: List of rules
+          content:
+            application/json: {}
+
+  /geofence/rule/{ruleid}:
+    get:
+      tags:
+        - FMS > Geofence
+      summary: Get Rule by ID
+      parameters:
+        - in: query
+          name: fleetid
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: ruleid
+          required: true
+          schema:
+            type: string
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Rule details
+          content:
+            application/json: {}
+
+  /geofence/updaterule:
+    put:
+      tags:
+        - FMS > Geofence
+      summary: Update Rule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                fleetid: "2c360155-e1cb-40cb-80f3-f222eaffedb6"
+                ruleid: "11532bc8-9668-448e-89a6-5734b9721b08"
+                rulename: "first rule rename"
+                ruletypeid: "ENTRY_EXIT"
+                meta:
+                  reason: "test"
+                rulegeoinfo:
+                  - geofenceid: "f38fd808-568c-4f5f-af48-a42c7ccbd294"
+                    seqno: "0"
+                    actiontypeid: "ENTRY"
+                    meta:
+                      duration: 20000
+                      time: 1752670110
+                      repeats: 1
+                  - geofenceid: "0f6c7900-f798-4e79-9352-c3488124a285"
+                    seqno: "1"
+                    actiontypeid: "EXIT"
+                    meta:
+                      duration: 20000
+                      time: 1752670110
+                      repeats: 1
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Rule updated
+          content:
+            application/json: {}
+
+  /geofence/updateruleactive:
+    put:
+      tags:
+        - FMS > Geofence
+      summary: Update Rule Status
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                fleetid: "2c360155-e1cb-40cb-80f3-f222eaffedb6"
+                ruleid: "11532bc8-9668-448e-89a6-5734b9721b08"
+                isactive: false
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Rule status updated
+          content:
+            application/json: {}
+
+  /geofence/deleterule:
+    delete:
+      tags:
+        - FMS > Geofence
+      summary: Delete Rule
+      parameters:
+        - in: query
+          name: fleetid
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: ruleid
+          required: true
+          schema:
+            type: string
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Rule deleted
+          content:
+            application/json: {}
+
+  /geofence/listasinablrulevehs:
+    get:
+      tags:
+        - FMS > Geofence
+      summary: Get Assignable Rule Vehicles
+      parameters:
+        - in: query
+          name: fleetid
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: ruleid
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: recursive
+          required: false
+          schema:
+            type: string
+          example: "true"
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: List of assignable vehicles
+          content:
+            application/json: {}
+
+  /geofence/listasinablrulefleets:
+    get:
+      tags:
+        - FMS > Geofence
+      summary: Get Assignable Rule Fleets
+      parameters:
+        - in: query
+          name: fleetid
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: ruleid
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: recursive
+          required: false
+          schema:
+            type: string
+          example: "true"
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: List of assignable fleets
+          content:
+            application/json: {}
+
+  /geofence/listasinablruleusers:
+    get:
+      tags:
+        - FMS > Geofence
+      summary: Get Assignable Rule Users
+      parameters:
+        - in: query
+          name: fleetid
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: ruleid
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: recursive
+          required: false
+          schema:
+            type: string
+          example: "true"
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: List of assignable users
+          content:
+            application/json: {}
+
+  /geofence/addrulevehs:
+    post:
+      tags:
+        - FMS > Geofence
+      summary: Add Vehicles to Rule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                fleetid: "2c360155-e1cb-40cb-80f3-f222eaffedb6"
+                ruleid: "11532bc8-9668-448e-89a6-5734b9721b08"
+                vinnos: ["VIN123456789", "VIN987654321"]
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Vehicles added to rule
+          content:
+            application/json: {}
+
+  /geofence/rmrulevehs:
+    post:
+      tags:
+        - FMS > Geofence
+      summary: Remove Vehicles from Rule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                fleetid: "2c360155-e1cb-40cb-80f3-f222eaffedb6"
+                ruleid: "11532bc8-9668-448e-89a6-5734b9721b08"
+                vinnos: ["VIN123456789", "VIN987654321"]
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Vehicles removed from rule
+          content:
+            application/json: {}
+
+  /geofence/addrulefleets:
+    post:
+      tags:
+        - FMS > Geofence
+      summary: Add Fleets to Rule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                fleetid: "2c360155-e1cb-40cb-80f3-f222eaffedb6"
+                ruleid: "11532bc8-9668-448e-89a6-5734b9721b08"
+                fleets: ["f38fd808-568c-4f5f-af48-a42c7ccbd294", "0f6c7900-f798-4e79-9352-c3488124a285"]
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Fleets added to rule
+          content:
+            application/json: {}
+
+  /geofence/rmrulefleets:
+    post:
+      tags:
+        - FMS > Geofence
+      summary: Remove Fleets from Rule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                fleetid: "2c360155-e1cb-40cb-80f3-f222eaffedb6"
+                ruleid: "11532bc8-9668-448e-89a6-5734b9721b08"
+                fleets: ["f38fd808-568c-4f5f-af48-a42c7ccbd294", "0f6c7900-f798-4e79-9352-c3488124a285"]
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Fleets removed from rule
+          content:
+            application/json: {}
+
+  /geofence/addruleusers:
+    post:
+      tags:
+        - FMS > Geofence
+      summary: Add Users to Rule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                fleetid: "2c360155-e1cb-40cb-80f3-f222eaffedb6"
+                ruleid: "11532bc8-9668-448e-89a6-5734b9721b08"
+                users: ["user123", "user456"]
+                alertmeta:
+                  emailnoti: true
+                  pushnoti: false
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Users added to rule
+          content:
+            application/json: {}
+
+  /geofence/updateusernoti:
+    put:
+      tags:
+        - FMS > Geofence
+      summary: Update User Notification Settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                fleetid: "2c360155-e1cb-40cb-80f3-f222eaffedb6"
+                ruleid: "11532bc8-9668-448e-89a6-5734b9721b08"
+                userid: "user123"
+                alertmeta:
+                  emailnoti: true
+                  pushnoti: false
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: User notification settings updated
+          content:
+            application/json: {}
+
+  /geofence/rmruleusers:
+    post:
+      tags:
+        - FMS > Geofence
+      summary: Remove Users from Rule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                fleetid: "2c360155-e1cb-40cb-80f3-f222eaffedb6"
+                ruleid: "11532bc8-9668-448e-89a6-5734b9721b08"
+                users: ["user123", "user456"]
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Users removed from rule
+          content:
+            application/json: {}
+
+  /report/alert:
+    post:
+      tags:
+        - FMS > Report
+      summary: Get Geo Alert Report
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                fleetid: "2c360155-e1cb-40cb-80f3-f222eaffedb6"
+                ruleids: ["11532bc8-9668-448e-89a6-5734b9721b08"]
+                vinnos: ["VIN123456789"]
+                starttime: 1752670110
+                endtime: 1752756510
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Geo alert report
+          content:
+            application/json: {}
+
+  /report/trip:
+    post:
+      tags:
+        - FMS > Report
+      summary: Get Geo Trip Report
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                fleetid: "2c360155-e1cb-40cb-80f3-f222eaffedb6"
+                ruleids: ["11532bc8-9668-448e-89a6-5734b9721b08"]
+                vinnos: ["VIN123456789"]
+                starttime: 1752670110
+                endtime: 1752756510
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Geo trip report
+          content:
+            application/json: {}
+
