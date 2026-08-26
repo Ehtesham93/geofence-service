@@ -5,9 +5,9 @@ export async function externalApiCall(path, body, method = 'GET', cookie) {
     try {
         let referer = '';
         if (process.env.APP_ENV === 'STAGING') {
-            referer = 'https://stg-nemo.mahindralastmilemobility.com:2053/fms';
+            referer = 'Xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
         } else {
-            referer = 'https://stg-nemo.mahindralastmilemobility.com:2083/fms';
+            referer = 'Xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
         }
         const headers = {
             'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0',
