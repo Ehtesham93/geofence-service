@@ -3,10 +3,10 @@ pipeline {
 
     environment {
         // Define environment variables here
-        ECR_ENDPOINT = '813183298904.dkr.ecr.ap-south-1.amazonaws.com'
-        ECR_REPO = 'lmm-intellicar'
+        ECR_ENDPOINT = 'ewasdfgbnkbvgccyg.amazonaws.com'
+        ECR_REPO = 'mineprojrct'
         ECR_IMAGE_NAME = 'dev-nemo3-api-geofence-svc'
-        AWS_CREDENTIALS_ID = 'aws_credentials'
+        AWS_CREDENTIALS_ID = 'xxxxxxxxxxxxxxxxx'
         CLUSTER_NAME = 'intellicar-frontend'
         SERVICE_NAME = 'dev-nemo3-api-geofence-svc'
         TASK_DEFINITION_NAME = 'dev-lmm-intellicar-nemo3-api-geofence-svc'
@@ -24,8 +24,8 @@ pipeline {
             steps {
                 echo 'Checking out the code...'
                 git branch: 'main', 
-                    url: 'https://github.com/lmm-intellicar/nemo3-api-geofence-svc.git', 
-                    credentialsId: 'github_token'
+                    url: 'https://github.com/xxxxxxxxxxxxxxxxxxxxx.git', 
+                    credentialsId: 'uytdrdfgbhb'
             }
         }
 
