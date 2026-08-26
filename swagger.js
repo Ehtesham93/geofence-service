@@ -23,7 +23,7 @@ export const swaggerDocs = (app) => {
     swaggerUi.serve,
     swaggerUi.setup(swaggerSpec, swaggerUiOptions)
   );
-  //http://localhost:10008/api/v1/fms/geofence/api-docs/
+  
 
   app.get("/api/v1/fms/geofence/api-docs.json", (req, res) => {
     res.setHeader("Content-Type", "application/json");
